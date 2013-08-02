@@ -29,4 +29,19 @@ class User < ActiveRecord::Base
       end
     end
   end
+
+  def questionaire_responses
+    poll_results = {}
+    q = questionaires.includes(:questions => [:answers =>[:votes]])
+    q.each do |questionaire|
+      results = {}
+      questionaire.questions.each do |question|
+        r = Hash.new(0)
+        question.answers.each{ |answer| r[answer] = answer.votes.length }
+        results[question] = r
+      end
+      poll_results[questionaire] = results
+    end
+    poll_results
+  end
 end

@@ -3,9 +3,14 @@ class Vote < ActiveRecord::Base
 
   validates :question_answer_id, :presence => true
   #voter id law
-  validates :voter_id, :presence => true, :uniqueness => { :scope => :question,
-    :message => "Each user can only vote on one answer per question." },
-    unless: :is_author?
+  validates :voter_id, :presence => true, :uniqueness => {
+    :scope => User.joins(
+    'JOIN questionaires on questionaires.author_id = users.id
+     JOIN questions ON questions.questionaire_id = questionaires.id
+     JOIN question_answers ON questions.id = question_answers.question_id'
+     ).where("question_answers.id = ?", :question_answer_id),
+    :message => "Each user can only vote on one answer per question." }
+  validate :is_author?
 
   belongs_to :voter,
     :class_name => "User",
@@ -21,6 +26,9 @@ class Vote < ActiveRecord::Base
   has_one :question_author, :through => :question, :source => :author
 
   def is_author?
-    question_author.id == self.voter_id
+     # debugger
+    if question.author.id == self.voter_id
+      errors.add(:voter_id, "don't vote on your own question")
+    end
   end
 end

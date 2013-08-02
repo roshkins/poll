@@ -19,4 +19,15 @@ class Questionaire < ActiveRecord::Base
     num.times{ questionaire.questions << (Question.random_question) }
     questionaire
   end
+
+  def results
+    results = Hash.new(0)
+    q = questions.includes(:answers =>[:votes])
+    q.each do |question|
+      r = Hash.new(0)
+      question.answers.each{ |answer| r[answer] = answer.votes.length }
+      results[question] = r
+    end
+    results
+  end
 end
